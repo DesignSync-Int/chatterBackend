@@ -65,23 +65,21 @@ export const login = async (req, res) => {
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    console.log("Password comparison result:", isPasswordCorrect);
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
+    console.log("Password match successful for user:", user._id);
 
     generateToken(user._id, res);
-
+    console.log("Token generated for user:", user._id);
     res.status(200).json({
       _id: user._id,
       name: user.name,
       profile: user.profile,
     });
   } catch (error) {
-    console.log("Error in login controller", error.message, {
-      _id: user._id,
-      name: user.name,
-      profile: user.profile,
-    });
+    console.log("Error in login controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
