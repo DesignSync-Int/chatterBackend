@@ -48,7 +48,6 @@ export const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
@@ -57,7 +56,6 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ name });
     console.log("User found:", user);
-    const token = generateToken(user._id, res);
 
     if (!user) {
       // Check if any users exist at all
@@ -67,20 +65,17 @@ export const login = async (req, res) => {
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    console.log(
-      "Password comparison result:",
-      isPasswordCorrect,
-      password,
-      "-----",
-      user.password
-    );
+    console.log("Password comparison result:", isPasswordCorrect);
+
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
     console.log("Password match successful for user:", user._id);
 
-    generateToken(user._id, res);
+    // Generate token ONLY after validation
+    const token = generateToken(user._id, res);
     console.log("Token generated for user:", user._id);
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -92,23 +87,25 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const logout = (req, res) => {
   try {
- res.clearCookie("jwt", {
-   maxAge: 0, // Expire immediately
-   httpOnly: true,
-   sameSite: "lax",
-   secure: process.env.NODE_ENV === "production",
-   path: "/", // Make sure path matches the one used when setting the cookie
- });
- res.status(200).json({ message: "Logged out successfully" });
+    console.log("Logout attempt - clearing JWT cookie");
+
+    // Clear the JWT cookie properly
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+
+    console.log("JWT cookie cleared successfully");
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.log("Error in logout controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const updateProfile = async (req, res) => {
   try {
     const { profile } = req.body;
