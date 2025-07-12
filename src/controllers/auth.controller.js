@@ -85,7 +85,6 @@ export const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       profile: user.profile,
-      token: token, // Add this line
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
