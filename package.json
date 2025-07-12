@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "serve": "NODE_ENV=production node src/index.js"
+    "serve": "NODE_ENV=production node src/index.js",
+    "build": "echo 'Build completed'"
   },
   "keywords": [],
   "author": "",

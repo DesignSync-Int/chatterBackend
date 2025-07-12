@@ -8,7 +8,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [LocalPath],
+    origin:
+      process.env.NODE_ENV === "production"
+        ? [LocalPath, process.env.FRONTEND_URL]
+        : [LocalPath],
+    credentials: true,
   },
 });
 
