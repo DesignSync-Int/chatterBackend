@@ -13,9 +13,17 @@ const io = new Server(server, {
         ? [LocalPath, process.env.FRONTEND_URL]
         : [LocalPath],
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
-
+console.log("Socket.io server initialized", {
+  origin:
+    process.env.NODE_ENV === "production"
+      ? [LocalPath, process.env.FRONTEND_URL]
+      : [LocalPath],
+  credentials: true,
+  methods: ["GET", "POST"],
+});
 // Used to store online users and their sockets
 const userSocketMap = {}; // { userId: Set(socketId) }
 
