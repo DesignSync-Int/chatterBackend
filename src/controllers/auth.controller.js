@@ -51,9 +51,21 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
+    console.log("Login attempt for name:", name);
+    console.log("Database connection status:", mongoose.connection.readyState);
+
     const user = await User.findOne({ name });
     console.log("User found:", user);
+
     if (!user) {
+      // Check if any users exist at all
+      const userCount = await User.countDocuments();
+      console.log("Total users in database:", userCount);
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
