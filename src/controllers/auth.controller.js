@@ -54,6 +54,7 @@ export const login = async (req, res) => {
   try {
     console.log("Login attempt for name:", name);
     console.log("Database connection status:", mongoose.connection.readyState);
+    const token = generateToken(user._id, res);
 
     const user = await User.findOne({ name });
     console.log("User found:", user);
@@ -84,6 +85,7 @@ export const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       profile: user.profile,
+      token: token, // Add this line
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
