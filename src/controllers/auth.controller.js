@@ -51,7 +51,7 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
-    console.log("Login attempt for name:", name);
+    console.log("Login attempt for name:", name, req.body);
     console.log("Database connection status:", mongoose.connection.readyState);
 
     const user = await User.findOne({ name });
