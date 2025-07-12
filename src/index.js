@@ -12,6 +12,13 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173", // Vite dev server
+  "https://chatterfrontend.onrender.com", // Replace with your actual Vercel URL
+  "https://sachink.dev", // If you have a custom domain
+];
+
 dotenv.config();
 
 const PORT = process.env.PORT;
@@ -21,7 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: LocalPath,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
