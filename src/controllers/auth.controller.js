@@ -2,6 +2,7 @@ import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
+import mongoose from "mongoose";
 
 export const signup = async (req, res) => {
   const { name, password, profile } = req.body;
@@ -51,7 +52,7 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
-    console.log("Login attempt for name:", name, req.body);
+    console.log("Login attempt for name:", name);
     console.log("Database connection status:", mongoose.connection.readyState);
 
     const user = await User.findOne({ name });
