@@ -5,7 +5,8 @@ import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 
 export const signup = async (req, res) => {
-  const { name, password, profile } = req.body;
+  const { name, password, profile, fullName, email, gender, dateOfBirth } =
+    req.body;
   try {
     if (!name || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -17,9 +18,10 @@ export const signup = async (req, res) => {
         .json({ message: "Password must be at least 6 characters" });
     }
 
-    const user = await User.findOne({ name });
-
-    if (user) return res.status(400).json({ message: "name already exists" });
+    const existingUser = await User.findOne({ name });
+    if (existingUser) {
+      return res.status(400).json({ message: "name already exists" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -28,16 +30,23 @@ export const signup = async (req, res) => {
       name,
       password: hashedPassword,
       profile,
+      fullName: fullName || null,
+      email: email || null,
+      gender: gender || null,
+      dateOfBirth: dateOfBirth || null,
     });
 
     if (newUser) {
-      // generate jwt token here
       generateToken(newUser._id, res);
       await newUser.save();
 
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        gender: newUser.gender,
+        dateOfBirth: newUser.dateOfBirth,
         profile: newUser.profile,
       });
     } else {
@@ -58,7 +67,6 @@ export const login = async (req, res) => {
     console.log("User found:", user);
 
     if (!user) {
-      // Check if any users exist at all
       const userCount = await User.countDocuments();
       console.log("Total users in database:", userCount);
       return res.status(400).json({ message: "Invalid credentials" });
@@ -72,7 +80,6 @@ export const login = async (req, res) => {
     }
     console.log("Password match successful for user:", user._id);
 
-    // Generate token ONLY after validation
     const token = generateToken(user._id, res);
     console.log("Token generated for user:", user._id);
 
@@ -91,7 +98,6 @@ export const logout = (req, res) => {
   try {
     console.log("Logout attempt - clearing JWT cookie");
 
-    // Clear the JWT cookie properly
     res.clearCookie("jwt", {
       httpOnly: true,
       sameSite: "lax",
@@ -135,5 +141,27 @@ export const checkAuth = (req, res) => {
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+export const updateUserInfo = async (req, res) => {
+  try {
+    const { fullName, email, gender, dateOfBirth } = req.body;
+    const userId = req.user._id;
+
+    const updateData = {};
+
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (email !== undefined) updateData.email = email;
+    if (gender !== undefined) updateData.gender = gender;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).select("-password");
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.log("error in update user info:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

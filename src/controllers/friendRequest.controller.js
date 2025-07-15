@@ -2,19 +2,19 @@ import FriendRequest from "../models/friendRequest.model.js";
 import User from "../models/user.model.js";
 import { io } from "../lib/socket.js";
 
-// Send friend request
+// handle sending friend requests
 export const sendFriendRequest = async (req, res) => {
   try {
     const { receiverId, message } = req.body;
     const senderId = req.user._id;
 
-    // Check if receiver exists
+    // make sure the receiver actually exists
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if they are already friends
+    // check if they're already friends - no need to send request
     const isAlreadyFriend = await User.findOne({
       _id: senderId,
       friends: receiverId,
@@ -24,7 +24,7 @@ export const sendFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Already friends" });
     }
 
-    // Check if friend request already exists
+    // check for existing requests in either direction
     const existingRequest = await FriendRequest.findOne({
       $or: [
         { sender: senderId, receiver: receiverId },
@@ -36,16 +36,16 @@ export const sendFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Friend request already exists" });
     }
 
-    // Create friend request
+    // create the friend request
     const friendRequest = new FriendRequest({
       sender: senderId,
       receiver: receiverId,
-      message: message || "",
+      message: message || "", // message is optional
     });
 
     await friendRequest.save();
 
-    // Populate sender information
+    // get sender info for the notification
     await friendRequest.populate("sender", "name profile");
 
     // Emit real-time notification to receiver

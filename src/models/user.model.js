@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// user schema with required and optional fields
 const userSchema = new mongoose.Schema(
   {
     password: {
@@ -11,10 +12,37 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profile: {
+    // optional profile fields - these can be null
+    fullName: {
       type: String,
       default: null,
     },
+    email: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function (v) {
+          // skip validation if email is not provided
+          if (!v) return true;
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: "Please enter a valid email address",
+      },
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      default: null,
+    },
+    dateOfBirth: {
+      type: Date,
+      default: null,
+    },
+    profile: {
+      type: String,
+      default: null, // avatar URL from cloudinary
+    },
+    // array of user IDs who are friends
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +50,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true } // adds createdAt and updatedAt automatically
 );
 
 const User = mongoose.model("User", userSchema);
