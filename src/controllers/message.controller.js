@@ -21,6 +21,12 @@ export const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
 
+    // Check if users are friends before allowing to see messages
+    const currentUser = await User.findById(myId);
+    if (!currentUser.friends.includes(userToChatId)) {
+      return res.status(403).json({ error: "You can only chat with friends" });
+    }
+
     const messages = await Message.find({
       $or: [
         { senderId: myId, recipientId: userToChatId },
@@ -40,6 +46,14 @@ export const sendMessage = async (req, res) => {
     const { content, image } = req.body;
     const { id: recipientId } = req.params;
     const senderId = req.user._id;
+
+    // Check if users are friends before allowing to send messages
+    const currentUser = await User.findById(senderId);
+    if (!currentUser.friends.includes(recipientId)) {
+      return res
+        .status(403)
+        .json({ error: "You can only send messages to friends" });
+    }
 
     let imageUrl;
     if (image) {
