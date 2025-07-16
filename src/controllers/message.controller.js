@@ -29,7 +29,6 @@ export const getUsersForSidebar = async (req, res) => {
       totalUsers: filteredUsers.length,
     });
   } catch (error) {
-    console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -54,7 +53,6 @@ export const getMessages = async (req, res) => {
 
     res.status(200).json(messages);
   } catch (error) {
-    console.log("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -103,19 +101,15 @@ export const sendMessage = async (req, res) => {
       content: req.body.content,
       image: imageUrl,
     });
-    console.log("New message here: ", newMessage);
     await newMessage.save();
 
     const receiverSocketId = getReceiverSocketIds(recipientId);
-    console.log("Receiver socket ID: ", receiverSocketId, recipientId);
     if (receiverSocketId) {
-      console.log("Emitting new message to receiver: ", receiverSocketId);
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }
 
     res.status(201).json(newMessage);
   } catch (error) {
-    console.log("Error in sendMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };

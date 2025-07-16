@@ -88,41 +88,26 @@ export const signup = async (req, res) => {
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    console.log("Error in signup controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
-    console.log("Login attempt for name:", name);
-    console.log("Database connection status:", mongoose.connection.readyState);
-
-    // find user by username
     const user = await User.findOne({ name });
-    console.log("User found:", user);
 
     if (!user) {
-      // debugging - check if database has any users at all
-      const userCount = await User.countDocuments();
-      console.log("Total users in database:", userCount);
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // verify password
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    console.log("Password comparison result:", isPasswordCorrect);
 
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    console.log("Password match successful for user:", user._id);
 
-    // generate JWT token after successful validation
     const token = generateToken(user._id, res);
-    console.log("Token generated for user:", user._id);
 
-    // send back user info with token
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -130,15 +115,11 @@ export const login = async (req, res) => {
       token: token,
     });
   } catch (error) {
-    console.log("Error in login controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 export const logout = (req, res) => {
   try {
-    console.log("Logout attempt - clearing JWT cookie");
-
-    // Clear the JWT cookie properly
     res.clearCookie("jwt", {
       httpOnly: true,
       sameSite: "lax",
@@ -146,10 +127,8 @@ export const logout = (req, res) => {
       path: "/",
     });
 
-    console.log("JWT cookie cleared successfully");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.log("Error in logout controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -171,7 +150,6 @@ export const updateProfile = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -180,7 +158,6 @@ export const checkAuth = (req, res) => {
   try {
     res.status(200).json(req.user);
   } catch (error) {
-    console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -217,7 +194,6 @@ export const updateUserInfo = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("error in update user info:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
