@@ -12,11 +12,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // optional profile fields - these can be null
     fullName: {
       type: String,
-      default: null,
+      required: true,
     },
+    // optional profile fields - these can be null
     email: {
       type: String,
       default: null,

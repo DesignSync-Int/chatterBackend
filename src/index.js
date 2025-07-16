@@ -16,7 +16,7 @@ import { app, server } from "./lib/socket.js";
 const allowedOrigins = [
   LocalPath,
   "http://localhost:3000",
-  "http://localhost:5173", // Vite dev server
+  "http://localhost:5174", // Vite dev server
   "https://chatterfrontend.onrender.com", // Replace with your actual Vercel URL
   "https://sachink.dev", // If you have a custom domain
 ];

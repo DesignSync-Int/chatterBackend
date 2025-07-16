@@ -1,6 +1,7 @@
 import FriendRequest from "../models/friendRequest.model.js";
 import User from "../models/user.model.js";
 import { io } from "../lib/socket.js";
+import { censorMessage } from "../utils/messageCensorship.js";
 
 // handle sending friend requests
 export const sendFriendRequest = async (req, res) => {
@@ -36,11 +37,25 @@ export const sendFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Friend request already exists" });
     }
 
+    // Validate friend request message for inappropriate content
+    let finalMessage = message || "";
+    if (finalMessage.trim()) {
+      const censorResult = censorMessage(finalMessage);
+      if (censorResult.shouldBlock) {
+        return res.status(400).json({
+          message: "Friend request message contains inappropriate language",
+          violations: censorResult.violations,
+          details: "Please modify your message and try again",
+        });
+      }
+      finalMessage = censorResult.censoredText;
+    }
+
     // create the friend request
     const friendRequest = new FriendRequest({
       sender: senderId,
       receiver: receiverId,
-      message: message || "", // message is optional
+      message: finalMessage,
     });
 
     await friendRequest.save();
