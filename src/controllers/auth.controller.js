@@ -7,14 +7,29 @@ import { validateUserName, censorMessage } from "../utils/messageCensorship.js";
 
 // signup handler - handles both required and optional fields
 export const signup = async (req, res) => {
-  const { name, password, profile, fullName, email, gender, dateOfBirth } =
-    req.body;
+  const {
+    name,
+    password,
+    profile,
+    fullName,
+    email,
+    gender,
+    dateOfBirth,
+    captchaCompleted,
+  } = req.body;
   try {
     // basic validation first
     if (!name || !password || !fullName) {
       return res
         .status(400)
         .json({ message: "Name, password, and full name are required" });
+    }
+
+    // Check if captcha was completed (frontend validation)
+    if (!captchaCompleted) {
+      return res
+        .status(400)
+        .json({ message: "Please complete the captcha verification" });
     }
 
     // Enhanced name validation using third-party libraries
