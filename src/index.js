@@ -12,7 +12,6 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRequestRoutes from "./routes/friendRequest.route.js";
 import buyRequestRoutes from "./routes/buyRequest.route.js";
-import { generalRateLimit } from "./middleware/rateLimit.middleware.js";
 import { app, server } from "./lib/socket.js";
 
 const allowedOrigins = [
@@ -30,10 +29,6 @@ const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cookieParser());
-
-// Apply general rate limiting to all routes
-app.use(generalRateLimit);
-
 app.use(
   cors({
     origin: allowedOrigins,

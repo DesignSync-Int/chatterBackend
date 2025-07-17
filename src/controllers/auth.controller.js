@@ -4,11 +4,6 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 import { validateUserName, censorMessage } from "../utils/messageCensorship.js";
-import {
-  checkLoginAttempts,
-  recordFailedAttempt,
-  clearLoginAttempts,
-} from "../models/loginAttempt.model.js";
 
 // signup handler - handles both required and optional fields
 export const signup = async (req, res) => {
@@ -114,35 +109,17 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { name, password } = req.body;
   try {
-    const clientIp = req.clientIp || req.ip;
-
-    // Check if login attempts are blocked
-    const attemptCheck = await checkLoginAttempts(clientIp, name);
-    if (attemptCheck.isBlocked) {
-      return res.status(429).json({
-        message: attemptCheck.message,
-        retryAfter: attemptCheck.retryAfter,
-      });
-    }
-
     const user = await User.findOne({ name });
 
     if (!user) {
-      // Record failed attempt for invalid user
-      await recordFailedAttempt(clientIp, name);
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
-      // Record failed attempt for wrong password
-      await recordFailedAttempt(clientIp, name);
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
-    // Clear login attempts on successful login
-    await clearLoginAttempts(clientIp, name);
 
     const token = generateToken(user._id, res);
 
@@ -153,7 +130,6 @@ export const login = async (req, res) => {
       token: token,
     });
   } catch (error) {
-    console.error("Login error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
