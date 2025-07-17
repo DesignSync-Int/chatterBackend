@@ -11,7 +11,6 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRequestRoutes from "./routes/friendRequest.route.js";
-import buyRequestRoutes from "./routes/buyRequest.route.js";
 import { app, server } from "./lib/socket.js";
 
 const allowedOrigins = [
@@ -41,7 +40,6 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/friend-requests", friendRequestRoutes);
-app.use("/api/buy-request", buyRequestRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
