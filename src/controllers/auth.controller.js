@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 import { validateUserName, censorMessage } from "../utils/messageCensorship.js";
+import jwt from "jsonwebtoken";
+import { sendVerificationEmail } from "../lib/emailService.js";
 
 // signup handler - handles both required and optional fields
 export const signup = async (req, res) => {
@@ -19,10 +21,10 @@ export const signup = async (req, res) => {
   } = req.body;
   try {
     // basic validation first
-    if (!name || !password || !fullName) {
+    if (!name || !password || !fullName || !email) {
       return res
         .status(400)
-        .json({ message: "Name, password, and full name are required" });
+        .json({ message: "Name, password, full name, and email are required" });
     }
 
     // Check if captcha was completed (frontend validation)
@@ -57,6 +59,12 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "name already exists" });
     }
 
+    // check if email already taken
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "email already exists" });
+    }
+
     // Enhanced fullName validation - now required
     const fullNameValidation = validateUserName(fullName);
     if (!fullNameValidation.isValid) {
@@ -79,13 +87,21 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       profile,
       fullName: fullName,
-      // these are optional - set to null if not provided
-      email: email || null,
+      email,
+      isEmailVerified: false,
       gender: gender || null,
       dateOfBirth: dateOfBirth || null,
     });
 
     if (newUser) {
+      // Send verification email
+      const emailSent = await sendVerificationEmail(newUser);
+      if (!emailSent) {
+        return res
+          .status(500)
+          .json({ message: "Failed to send verification email" });
+      }
+
       generateToken(newUser._id, res);
       await newUser.save();
 
@@ -95,9 +111,12 @@ export const signup = async (req, res) => {
         name: newUser.name,
         fullName: newUser.fullName,
         email: newUser.email,
+        isEmailVerified: newUser.isEmailVerified,
         gender: newUser.gender,
         dateOfBirth: newUser.dateOfBirth,
         profile: newUser.profile,
+        message:
+          "Registration successful. Please check your email to verify your account.",
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
@@ -166,6 +185,42 @@ export const updateProfile = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res
+        .status(400)
+        .json({ message: "Verification token is required" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({
+      _id: decodedToken.userId,
+      isEmailVerified: false,
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({
+          message: "Invalid verification token or email already verified",
+        });
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    return res.status(200).json({ message: "Email verified successfully!" });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(400).json({ message: "Verification link has expired" });
+    }
+    return res.status(500).json({ message: "Failed to verify email" });
   }
 };
 
