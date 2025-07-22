@@ -46,7 +46,6 @@ export const signup = async (req, res) => {
       });
     }
 
-    // password length check - might increase this later
     if (password.length < 6) {
       return res
         .status(400)
@@ -94,16 +93,17 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
+      await newUser.save();
+
       // Send verification email
-      const emailSent = await sendVerificationEmail(newUser);
-      if (!emailSent) {
-        return res
-          .status(500)
-          .json({ message: "Failed to send verification email" });
+      try {
+        await sendVerificationEmail(newUser);
+      } catch (emailError) {
+        console.error("Email verification failed:", emailError);
+        // Don't fail the registration if email fails
       }
 
       generateToken(newUser._id, res);
-      await newUser.save();
 
       // return user data (excluding password)
       res.status(201).json({
@@ -111,7 +111,6 @@ export const signup = async (req, res) => {
         name: newUser.name,
         fullName: newUser.fullName,
         email: newUser.email,
-        isEmailVerified: newUser.isEmailVerified,
         gender: newUser.gender,
         dateOfBirth: newUser.dateOfBirth,
         profile: newUser.profile,
@@ -205,11 +204,9 @@ export const verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          message: "Invalid verification token or email already verified",
-        });
+      return res.status(400).json({
+        message: "Invalid verification token or email already verified",
+      });
     }
 
     user.isEmailVerified = true;
