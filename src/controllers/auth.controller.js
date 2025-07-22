@@ -5,7 +5,10 @@ import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 import { validateUserName, censorMessage } from "../utils/messageCensorship.js";
 import jwt from "jsonwebtoken";
-import { sendVerificationEmail } from "../lib/emailService.js";
+import {
+  sendVerificationEmail,
+  sendResetVerificationEmail,
+} from "../lib/emailService.js";
 
 // signup handler - handles both required and optional fields
 export const signup = async (req, res) => {
@@ -261,6 +264,117 @@ export const updateUserInfo = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "No user found with this email address" });
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Save reset token to user (optional - for additional security)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+    // Send password reset email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // For now, we'll use console.log since email service might not be fully configured
+    console.log(`Password reset link for ${email}: ${resetUrl}`);
+
+    // You can implement actual email sending here using your email service
+    // await sendPasswordResetEmail(user.email, resetUrl);
+    await user.save();
+
+    try {
+      await sendResetVerificationEmail(user);
+    } catch (emailError) {
+      console.error("Password reset failed:", emailError);
+      // Don't fail the registration if email fails
+    }
+
+    res.status(200).json({
+      message: "Password reset link has been sent to your email address",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    if (!token || !password) {
+      return res
+        .status(400)
+        .json({ message: "Token and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
+    }
+
+    // Find user
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if token matches and hasn't expired (if using database storage)
+    if (
+      user.resetPasswordToken !== token ||
+      user.resetPasswordExpires < Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Update password and clear reset token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password has been reset successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
