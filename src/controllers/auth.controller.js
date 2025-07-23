@@ -295,7 +295,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
     // Send password reset email
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/#/reset-password?token=${resetToken}`;
 
     // For now, we'll use console.log since email service might not be fully configured
     console.log(`Password reset link for ${email}: ${resetUrl}`);
