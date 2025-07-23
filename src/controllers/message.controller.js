@@ -103,9 +103,12 @@ export const sendMessage = async (req, res) => {
     });
     await newMessage.save();
 
-    const receiverSocketId = getReceiverSocketIds(recipientId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+    // Only emit to the recipient, not the sender
+    const receiverSocketIds = getReceiverSocketIds(recipientId);
+    if (receiverSocketIds.length > 0) {
+      receiverSocketIds.forEach((socketId) => {
+        io.to(socketId).emit("newMessage", newMessage);
+      });
     }
 
     res.status(201).json(newMessage);

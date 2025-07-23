@@ -76,7 +76,6 @@ export const sendFriendRequest = async (req, res) => {
       friendRequest,
     });
   } catch (error) {
-    console.log("Error in sendFriendRequest controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -87,7 +86,10 @@ export const acceptFriendRequest = async (req, res) => {
     const { requestId } = req.params;
     const userId = req.user._id;
 
-    const friendRequest = await FriendRequest.findById(requestId).populate("sender receiver", "name profile");
+    const friendRequest = await FriendRequest.findById(requestId).populate(
+      "sender receiver",
+      "name profile"
+    );
 
     if (!friendRequest) {
       return res.status(404).json({ message: "Friend request not found" });
@@ -98,7 +100,9 @@ export const acceptFriendRequest = async (req, res) => {
     }
 
     if (friendRequest.status !== "pending") {
-      return res.status(400).json({ message: "Friend request already processed" });
+      return res
+        .status(400)
+        .json({ message: "Friend request already processed" });
     }
 
     // Update friend request status
@@ -126,7 +130,6 @@ export const acceptFriendRequest = async (req, res) => {
       friendRequest,
     });
   } catch (error) {
-    console.log("Error in acceptFriendRequest controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -148,7 +151,9 @@ export const declineFriendRequest = async (req, res) => {
     }
 
     if (friendRequest.status !== "pending") {
-      return res.status(400).json({ message: "Friend request already processed" });
+      return res
+        .status(400)
+        .json({ message: "Friend request already processed" });
     }
 
     // Update friend request status
@@ -159,7 +164,6 @@ export const declineFriendRequest = async (req, res) => {
       message: "Friend request declined",
     });
   } catch (error) {
-    console.log("Error in declineFriendRequest controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -172,11 +176,12 @@ export const getReceivedFriendRequests = async (req, res) => {
     const friendRequests = await FriendRequest.find({
       receiver: userId,
       status: "pending",
-    }).populate("sender", "name profile").sort({ createdAt: -1 });
+    })
+      .populate("sender", "name profile")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(friendRequests);
   } catch (error) {
-    console.log("Error in getReceivedFriendRequests controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

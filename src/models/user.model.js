@@ -16,18 +16,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // optional profile fields - these can be null
     email: {
       type: String,
-      default: null,
+      required: true,
+      unique: true,
       validate: {
         validator: function (v) {
-          // skip validation if email is not provided
-          if (!v) return true;
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: "Please enter a valid email address",
       },
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
     gender: {
       type: String,
@@ -49,6 +51,15 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    // Password reset fields
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true } // adds createdAt and updatedAt automatically
 );
