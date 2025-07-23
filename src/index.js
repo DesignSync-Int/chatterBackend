@@ -23,7 +23,7 @@ const allowedOrigins = [
 
 dotenv.config();
 
-const PORT = process.env.PORT;
+const { PORT } = process.env;
 const __dirname = path.resolve();
 
 app.use(express.json());

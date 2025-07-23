@@ -49,7 +49,7 @@ leoProfanity.add(additionalBadWords);
  * @param {string} text - Text to censor
  * @returns {object} - Censorship result with violations and cleaned text
  */
-export const censorMessage = (text) => {
+export const censorMessage = text => {
   if (!text || typeof text !== "string" || text.trim().length === 0) {
     return {
       originalText: text || "",
@@ -61,7 +61,7 @@ export const censorMessage = (text) => {
   }
 
   const originalText = text.trim();
-  let violations = [];
+  const violations = [];
   let shouldBlock = false;
 
   // Check with bad-words library
@@ -107,7 +107,7 @@ export const censorMessage = (text) => {
 
     // Find specific violating words
     const words = originalText.split(/\s+/);
-    words.forEach((word) => {
+    words.forEach(word => {
       const cleanWord = word.toLowerCase().replace(/[^\w]/g, "");
       if (
         badWordsFilter.isProfane(cleanWord) ||
@@ -118,7 +118,7 @@ export const censorMessage = (text) => {
     });
 
     // Check for compound profanity in individual words
-    words.forEach((word) => {
+    words.forEach(word => {
       const cleanWord = word.toLowerCase();
       for (const badWord of badWordsToCheck) {
         if (cleanWord.includes(badWord) && !violations.includes(word)) {
@@ -151,7 +151,7 @@ export const censorMessage = (text) => {
  * @param {string} name - Name to validate
  * @returns {object} - Validation result
  */
-export const validateUserName = (name) => {
+export const validateUserName = name => {
   if (!name || typeof name !== "string" || name.trim().length === 0) {
     return {
       isValid: false,
@@ -202,7 +202,7 @@ export const validateUserName = (name) => {
     const violations = [];
 
     // Check individual words
-    words.forEach((word) => {
+    words.forEach(word => {
       const cleanWord = word.toLowerCase().replace(/[^\w]/g, "");
       if (
         badWordsFilter.isProfane(cleanWord) ||

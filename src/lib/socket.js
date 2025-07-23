@@ -31,7 +31,7 @@ function getReceiverSocketIds(userId) {
   return userSocketMap[userId] ? Array.from(userSocketMap[userId]) : [];
 }
 
-io.on("connection", (socket) => {
+io.on("connection", socket => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId || socket.handshake.auth.userId;

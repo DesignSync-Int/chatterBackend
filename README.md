@@ -72,22 +72,26 @@ src/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/kumasachin/chatter-backend.git
 cd chatter-backend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create environment file:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Configure environment variables:
+
 ```env
 # Database
 MONGODB_URI=mongodb://localhost:27017/chatter
@@ -114,6 +118,7 @@ CAPTCHA_SECRET=your-captcha-secret
 ```
 
 5. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -130,6 +135,7 @@ The server will be available at `http://localhost:4000`
 ## 📡 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
@@ -140,6 +146,7 @@ The server will be available at `http://localhost:4000`
 - `POST /api/auth/reset-password` - Reset password
 
 ### Friend Requests
+
 - `GET /api/friends/requests` - Get friend requests
 - `POST /api/friends/send` - Send friend request
 - `POST /api/friends/accept` - Accept friend request
@@ -148,18 +155,21 @@ The server will be available at `http://localhost:4000`
 - `GET /api/friends/search` - Search users
 
 ### Messages
+
 - `GET /api/messages/:userId` - Get messages with specific user
 - `POST /api/messages/send/:userId` - Send message to user
 
 ## 🔌 Socket.IO Events
 
 ### Client to Server
+
 - `join` - Join user to their room
 - `send_message` - Send a message
 - `typing_start` - Start typing indicator
 - `typing_stop` - Stop typing indicator
 
 ### Server to Client
+
 - `message` - Receive new message
 - `typing_start` - User started typing
 - `typing_stop` - User stopped typing
@@ -170,6 +180,7 @@ The server will be available at `http://localhost:4000`
 ## 🗄️ Database Models
 
 ### User Model
+
 ```javascript
 {
   name: String,        // Username
@@ -188,6 +199,7 @@ The server will be available at `http://localhost:4000`
 ```
 
 ### Friend Request Model
+
 ```javascript
 {
   sender: ObjectId,    // User who sent request
@@ -199,6 +211,7 @@ The server will be available at `http://localhost:4000`
 ```
 
 ### Message Model
+
 ```javascript
 {
   sender: ObjectId,    // Message sender
@@ -213,23 +226,27 @@ The server will be available at `http://localhost:4000`
 ## 🔒 Security Features
 
 ### Authentication
+
 - JWT token-based authentication
 - Password hashing with bcryptjs
 - Secure cookie handling
 - Authentication middleware protection
 
 ### Input Validation
+
 - Request body validation
 - Email format validation
 - Password strength requirements
 - CAPTCHA verification
 
 ### Content Moderation
+
 - Automatic profanity filtering
 - Message content sanitization
 - Image upload restrictions
 
 ### CORS Configuration
+
 - Configured for frontend domain
 - Credentials support for cookies
 - Environment-based URL configuration
@@ -311,12 +328,15 @@ The backend is designed to work with the frontend's Cypress test suite. Key test
 ## 🔧 Configuration
 
 ### Database Configuration
+
 The application uses MongoDB with Mongoose. Configure your connection string in the environment variables.
 
 ### Socket.IO Configuration
+
 CORS is configured to allow the frontend domain. Update in `src/lib/socket.js` for production.
 
 ### Email Configuration
+
 Supports Gmail and custom SMTP servers. Use Gmail App Passwords for better security.
 
 ## 🤝 Contributing
@@ -334,6 +354,7 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 ## 👨‍💻 Author
 
 **Sachin Kumar**
+
 - GitHub: [@kumasachin](https://github.com/kumasachin)
 
 ## 🙏 Acknowledgments

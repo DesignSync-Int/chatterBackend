@@ -2,8 +2,7 @@ import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
-import mongoose from "mongoose";
-import { validateUserName, censorMessage } from "../utils/messageCensorship.js";
+import { validateUserName } from "../utils/messageCensorship.js";
 import jwt from "jsonwebtoken";
 import {
   sendVerificationEmail,
@@ -88,7 +87,7 @@ export const signup = async (req, res) => {
       name,
       password: hashedPassword,
       profile,
-      fullName: fullName,
+      fullName,
       email,
       isEmailVerified: false,
       gender: gender || null,
@@ -148,7 +147,7 @@ export const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       profile: user.profile,
-      token: token,
+      token,
     });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
@@ -294,12 +293,6 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
-    // Send password reset email
-    const resetUrl = `${process.env.FRONTEND_URL}/#/reset-password?token=${resetToken}`;
-
-    // For now, we'll use console.log since email service might not be fully configured
-    console.log(`Password reset link for ${email}: ${resetUrl}`);
-
     // You can implement actual email sending here using your email service
     // await sendPasswordResetEmail(user.email, resetUrl);
     await user.save();
@@ -381,20 +374,24 @@ export const resetPassword = async (req, res) => {
 export const generateCaptcha = (req, res) => {
   try {
     // Generate simple text CAPTCHA
-    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    let captchaText = '';
+    const characters =
+      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let captchaText = "";
     for (let i = 0; i < 5; i++) {
-      captchaText += characters.charAt(Math.floor(Math.random() * characters.length));
+      captchaText += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
     }
 
     // Generate session ID
-    const sessionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const sessionId =
+      Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
     // Store CAPTCHA in global memory (in production, use Redis or database)
     global.captchaStore = global.captchaStore || new Map();
     global.captchaStore.set(sessionId, {
       text: captchaText,
-      expires: Date.now() + 300000 // 5 minutes
+      expires: Date.now() + 300000, // 5 minutes
     });
 
     // Clean up expired CAPTCHAs
@@ -412,13 +409,12 @@ export const generateCaptcha = (req, res) => {
       </svg>
     `;
 
-    const base64Image = `data:image/svg+xml;base64,${Buffer.from(svgCaptcha).toString('base64')}`;
+    const base64Image = `data:image/svg+xml;base64,${Buffer.from(svgCaptcha).toString("base64")}`;
 
     res.status(200).json({
       sessionId,
-      captchaImage: base64Image
+      captchaImage: base64Image,
     });
-
   } catch (error) {
     console.error("CAPTCHA generation error:", error);
     res.status(500).json({ message: "Failed to generate CAPTCHA" });

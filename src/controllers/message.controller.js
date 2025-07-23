@@ -11,7 +11,7 @@ export const getUsersForSidebar = async (req, res) => {
     const search = req.query.search || "";
 
     // build query object
-    let query = { _id: { $ne: loggedInUserId } }; // exclude current user
+    const query = { _id: { $ne: loggedInUserId } }; // exclude current user
 
     // add search filter if provided
     if (search.trim()) {
@@ -106,7 +106,7 @@ export const sendMessage = async (req, res) => {
     // Only emit to the recipient, not the sender
     const receiverSocketIds = getReceiverSocketIds(recipientId);
     if (receiverSocketIds.length > 0) {
-      receiverSocketIds.forEach((socketId) => {
+      receiverSocketIds.forEach(socketId => {
         io.to(socketId).emit("newMessage", newMessage);
       });
     }

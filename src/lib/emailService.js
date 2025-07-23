@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
+import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendVerificationEmail = async (user) => {
+export const sendVerificationEmail = async user => {
   try {
     console.log("sendVerificationEmail called with user:", {
       _id: user._id,
@@ -73,7 +73,7 @@ export const sendVerificationEmail = async (user) => {
     return false;
   }
 };
-export const sendResetVerificationEmail = async (user) => {
+export const sendResetVerificationEmail = async user => {
   try {
     console.log("sendVerificationEmail called with user:", {
       _id: user._id,
@@ -103,7 +103,7 @@ export const sendResetVerificationEmail = async (user) => {
       { expiresIn: "1h" }
     );
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${verificationToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/#/reset-password?token=${verificationToken}`;
     const mailOptions = {
       from: process.env.SMTP_FROM,
       to: user.email,
