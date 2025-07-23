@@ -378,3 +378,49 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+export const generateCaptcha = (req, res) => {
+  try {
+    // Generate simple text CAPTCHA
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let captchaText = '';
+    for (let i = 0; i < 5; i++) {
+      captchaText += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    // Generate session ID
+    const sessionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+
+    // Store CAPTCHA in global memory (in production, use Redis or database)
+    global.captchaStore = global.captchaStore || new Map();
+    global.captchaStore.set(sessionId, {
+      text: captchaText,
+      expires: Date.now() + 300000 // 5 minutes
+    });
+
+    // Clean up expired CAPTCHAs
+    for (const [key, value] of global.captchaStore.entries()) {
+      if (value.expires < Date.now()) {
+        global.captchaStore.delete(key);
+      }
+    }
+
+    // For now, return a simple SVG-based CAPTCHA
+    const svgCaptcha = `
+      <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="60" fill="#f0f0f0"/>
+        <text x="20" y="40" font-family="Arial" font-size="24" fill="#333">${captchaText}</text>
+      </svg>
+    `;
+
+    const base64Image = `data:image/svg+xml;base64,${Buffer.from(svgCaptcha).toString('base64')}`;
+
+    res.status(200).json({
+      sessionId,
+      captchaImage: base64Image
+    });
+
+  } catch (error) {
+    console.error("CAPTCHA generation error:", error);
+    res.status(500).json({ message: "Failed to generate CAPTCHA" });
+  }
+};
