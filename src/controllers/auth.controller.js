@@ -371,6 +371,43 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const resendVerificationEmail = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if user is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified" });
+    }
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(user);
+    if (!emailSent) {
+      return res.status(500).json({
+        message: "Failed to send verification email. Please try again later.",
+      });
+    }
+
+    res.status(200).json({
+      message: "Verification email has been sent successfully",
+    });
+  } catch (error) {
+    console.error("Resend verification email error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const generateCaptcha = (req, res) => {
   try {
     // Generate simple text CAPTCHA
