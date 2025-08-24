@@ -7,7 +7,9 @@ import jwt from "jsonwebtoken";
 import {
   sendVerificationEmail,
   sendResetVerificationEmail,
+  sendWelcomeEmail,
 } from "../lib/emailService.js";
+import { autoAddAIBotFriend, sendWelcomeMessage } from "./ai.controller.js";
 
 // signup handler - handles both required and optional fields
 export const signup = async (req, res) => {
@@ -141,15 +143,80 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // Check if this is the first login (welcome email not sent yet)
+    const isFirstLogin = !user.lastWelcomeEmailSent;
+
+    // Send welcome email for first-time login
+    if (isFirstLogin && user.email && !user.isGuest) {
+      try {
+        await sendWelcomeEmail(user);
+        // Update user to mark welcome email as sent
+        await User.findByIdAndUpdate(user._id, {
+          lastWelcomeEmailSent: new Date(),
+          lastLogin: new Date(),
+        });
+
+        // Send ChatterBot welcome message
+        setTimeout(() => {
+          sendWelcomeMessage(user._id);
+        }, 2000); // Delay to ensure user is connected
+      } catch (emailError) {
+        console.error("Welcome email failed:", emailError);
+        // Don't fail login if email fails
+      }
+    } else {
+      // Update last login time for returning users
+      await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+    }
+
     const token = generateToken(user._id, res);
 
     res.status(200).json({
       _id: user._id,
       name: user.name,
       profile: user.profile,
-      token,
+      token: token,
+      isFirstLogin: isFirstLogin,
     });
   } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Guest login handler - creates a temporary guest user
+export const guestLogin = async (req, res) => {
+  try {
+    // Generate a unique guest username with timestamp
+    const guestNumber = Date.now().toString().slice(-6);
+    const guestUsername = `Guest_${guestNumber}`;
+
+    // Create a temporary guest user (no password, email, etc.)
+    const guestUser = new User({
+      name: guestUsername,
+      fullName: `Guest User ${guestNumber}`,
+      email: `guest_${guestNumber}@chatter.local`,
+      password: await bcrypt.hash("guest123", 10), // Simple password for guests
+      profile: "/avatar-demo.html", // Default guest avatar
+      isGuest: true, // Mark as guest user
+    });
+
+    await guestUser.save();
+
+    // Automatically add AI bot as friend for guest users
+    await autoAddAIBotFriend(guestUser._id);
+
+    const token = generateToken(guestUser._id, res);
+
+    res.status(200).json({
+      _id: guestUser._id,
+      name: guestUser.name,
+      profile: guestUser.profile,
+      token: token,
+      isGuest: true,
+    });
+  } catch (error) {
+    console.error("Guest login error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -446,7 +513,9 @@ export const generateCaptcha = (req, res) => {
       </svg>
     `;
 
-    const base64Image = `data:image/svg+xml;base64,${Buffer.from(svgCaptcha).toString("base64")}`;
+    const base64Image = `data:image/svg+xml;base64,${Buffer.from(
+      svgCaptcha
+    ).toString("base64")}`;
 
     res.status(200).json({
       sessionId,
