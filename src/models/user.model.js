@@ -44,6 +44,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null, // avatar URL from cloudinary
     },
+    isGuest: {
+      type: Boolean,
+      default: false, // indicates if this is a guest user
+    },
+    isAIBot: {
+      type: Boolean,
+      default: false, // indicates if this is an AI bot user
+    },
+    lastWelcomeEmailSent: {
+      type: Date,
+      default: null, // tracks when welcome email was sent
+    },
+    lastLogin: {
+      type: Date,
+      default: null, // tracks last login time
+    },
     // array of user IDs who are friends
     friends: [
       {

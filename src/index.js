@@ -11,7 +11,10 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRequestRoutes from "./routes/friendRequest.route.js";
+import aiRoutes from "./routes/ai.route.js";
+import analyticsRoutes from "./routes/analytics.route.js";
 import { app, server } from "./lib/socket.js";
+import { initializeAIBot } from "./controllers/ai.controller.js";
 
 const allowedOrigins = [
   LocalPath,
@@ -40,6 +43,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/friend-requests", friendRequestRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -52,4 +57,8 @@ if (process.env.NODE_ENV === "production") {
 server.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
   connectDB();
+  // Initialize AI Bot after database connection
+  setTimeout(() => {
+    initializeAIBot();
+  }, 1000);
 });

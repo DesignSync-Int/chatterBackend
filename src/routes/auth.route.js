@@ -9,6 +9,7 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  guestLogin,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -17,6 +18,7 @@ const router = express.Router();
 // Auth routes
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/guest-login", guestLogin);
 router.post("/logout", logout);
 router.post("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
