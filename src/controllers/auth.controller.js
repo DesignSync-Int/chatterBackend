@@ -205,6 +205,9 @@ export const guestLogin = async (req, res) => {
 
     // Automatically add AI bot as friend for guest users
     await autoAddAIBotFriend(guestUser._id);
+    
+    // Send welcome message from ChatterBot
+    await sendWelcomeMessage(guestUser._id);
 
     const token = generateToken(guestUser._id, res);
 
