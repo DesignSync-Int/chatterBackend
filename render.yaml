@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: chatterbackend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: chatter-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://chatterfrontend.onrender.com
+      - key: PORT
+        value: 4000
+
+databases:
+  - name: chatter-db
+    databaseName: chatter
+    user: chatter
