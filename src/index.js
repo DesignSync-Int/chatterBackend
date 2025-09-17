@@ -46,6 +46,20 @@ app.use("/api/friend-requests", friendRequestRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    routes: ["auth", "messages", "friend-requests", "ai", "analytics"]
+  });
+});
+
+// Root endpoint
+app.get("/", (req, res) => {
+  res.send("Hell its working");
+});
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
